@@ -1,0 +1,68 @@
+step 1
+
+BBC dataset containing around 2000 articles in 5 areas i.e. Business,politics,sports,entertainmentand technology is taken.This dataset is in the form of folders where each folder is a category and it contains the files of that category.Here the file is a article,an article is a news article.Each folder comprises of around 500 artciles. The files are preprocessed and stored in this step.
+
+Retrievel.py
+The files in the folder are read one by one .The content of a file is the article.The article content is preprocessed to extract the words .The words are stored in allwords.txt and the file name and list of words stored in words.csv.Retriecvel.py calls preprocess.py for each file.
+
+Preprocessing.py
+Retriecvel.py calls preprocess.py for each file.The preprocessing step includes first converthing the article into tokens using .split the tokens are then checked for any numbers,punctuation and 2 letter words,theese are removed .The stopwords are removed from the tokens by comparing the token with the list of stopwords which is taken from a nltk library.The rest of the words are then stemmed using the porter stemmer algorihtm using porterstemmer class from nltk.In this manner all the files are preprocessed.
+
+csvW.py
+write into a csv file using csv library
+
+step 2:
+
+In this step the words vectors are generated.
+
+word2vec.py
+All thw words in allwords.txt are stored in a list.This list of all words is then used for generating the word vectors. word2vec.py calls the generate_training_data function to generate the word vectors. The vectors are stored in training_data.
+
+w2v_generate_training_data.py
+
+	generate_training_data function
+	To generate the training data
+	A default dictionary word_counts is created each word in the list is the key and the count is the value,the value is 1 for 1st word,2 for 2nd word....n for the nth word.
+	Now for each word in the list run the loop,the target word is the word itself in onehot representation,onehot representation means representation of the word in 1's and 0's.The context words are the list of words which come under the window ,here window size is 2 so all the words that are 2 positions before it and the words that are 2 positions after it are the context words.Where the context word cant be the word itself and cant be the last or the first word in the corpus.The context words are also in onehot representations.
+	the list comprising of target word,list of context words for each word is generated and such list for all the words is the training data.
+
+
+	train function
+	To train the generated training data
+	generate two weight matrices w1 and w2 which have random values w1 is of v_count X n dimension and w2 is n X v_count dimension where v_count is the count of the total number of words in the allwords.txt.
+
+		forward pass function
+		we pass the target word to this and compute h = dot product of w1 transpose and traget word, u= dot product of w2 transpose and h ,y=softmax of u
+		it reeturns h,u,and y.
+
+		backward pass function
+		e is EI
+		calculate change in weight dl_dw2 as dl_dw2 = np.outer(h, e),calculate change in weightdl_dw1 = np.outer(x, np.dot(self.w2, e.T))
+        change w1 as w1 = w1 - (lr * dl_dw1) and w2 as w2 = w2 - (lr * dl_dw2)
+
+		word2onehot function
+		create a list in which all values are 0 except for the value at the position of the word in the dictionary where it is 1.
+       
+    	softmax function
+    	compute softmax
+        e_x = np.exp(x - np.max(x))
+        return e_x / e_x.sum(axis=0)
+
+    for each word in the training data perform forward pass ,calculate EI as EI = np.sum([np.subtract(y_pred, word) for word in w_c], axis=0) i.e. sum of the differences of y and each context word,perform backprop
+                 
+    
+return the vector of the word which is nothing but the row of w1 at index of the word.The vector of each word is stored in vectors.csv here the vector is of dimension 100.
+
+step 3:
+
+Generating the feature vectors for each article.
+
+create100dim.py
+The word and its corresponding vectors are stored in the vectors.csv file.The file name , word an its vector .... for all the words in the file is stored in the 100dimwordvectors.csv .Create a dictionary word_vec_dictionary where the word is the key and the value is the vector.From the words.csv file the file name and the list of its words is known, for each row first the file name is extracted and stored in the 1st column of the 100dimwordvectors.csv ,then the 2nd column from the words.csv is extracted which is list of words in the file,for each word the vector is taken from the dictionary and the word is stored in one column and the vector in the column just to its right, in this manner all the words in that file are stored in that row in dofferent columns ,repeat the process for different files storing each file in a row.
+
+csvRead look function
+in this csvRead.look() function the feature vector is generated and stored in Feature Vectors.csv Find the minimum vector of all the word vector and find the max vector of all the word vectors .Compute the min and the max ,this is the feature vector of the article.
+
+step 4:
+
+Clustering K-means is applied and the output is a plot,the pca is applied for dimensionality reduction and the results are plotted.
